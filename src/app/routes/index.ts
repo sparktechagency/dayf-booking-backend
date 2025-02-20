@@ -4,6 +4,10 @@ import { userRoutes } from '../modules/user/user.route';
 import { authRoutes } from '../modules/auth/auth.route';
 import { notificationRoutes } from '../modules/notification/notificaiton.route';
 import { contentsRoutes } from '../modules/contents/contents.route';
+import { propertyRoutes } from '../modules/property/property.route';
+import { facilitiesRoutes } from '../modules/facilities/facilities.route';
+import { roomsRoutes } from '../modules/rooms/rooms.route';
+import { reviewsRoutes } from '../modules/reviews/reviews.route';
 
 const router = Router();
 const moduleRoutes = [
@@ -26,6 +30,22 @@ const moduleRoutes = [
   {
     path: '/contents',
     route: contentsRoutes,
+  },
+  {
+    path: '/facilities',
+    route: facilitiesRoutes,
+  },
+  {
+    path: '/properties',
+    route: propertyRoutes,
+  },
+  {
+    path: '/rooms',
+    route: roomsRoutes,
+  },
+  {
+    path: '/reviews',
+    route: reviewsRoutes,
   },
 ];
 moduleRoutes.forEach(route => router.use(route.path, route.route));
