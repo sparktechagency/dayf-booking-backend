@@ -8,6 +8,8 @@ import { propertyRoutes } from '../modules/property/property.route';
 import { facilitiesRoutes } from '../modules/facilities/facilities.route';
 import { roomsRoutes } from '../modules/rooms/rooms.route';
 import { reviewsRoutes } from '../modules/reviews/reviews.route';
+import { apartmentRoutes } from '../modules/apartment/apartment.route';
+import { bookingsRoutes } from '../modules/bookings/bookings.route';
 
 const router = Router();
 const moduleRoutes = [
@@ -36,12 +38,21 @@ const moduleRoutes = [
     route: facilitiesRoutes,
   },
   {
+    path: '/apartments',
+    route: apartmentRoutes,
+  },
+  {
     path: '/properties',
     route: propertyRoutes,
   },
   {
     path: '/rooms',
     route: roomsRoutes,
+  },
+
+  {
+    path: '/bookings',
+    route: bookingsRoutes,
   },
   {
     path: '/reviews',
