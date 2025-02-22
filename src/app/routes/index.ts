@@ -10,6 +10,8 @@ import { roomsRoutes } from '../modules/rooms/rooms.route';
 import { reviewsRoutes } from '../modules/reviews/reviews.route';
 import { apartmentRoutes } from '../modules/apartment/apartment.route';
 import { bookingsRoutes } from '../modules/bookings/bookings.route';
+import { chatRoutes } from '../modules/chat/chat.route';
+import { messagesRoutes } from '../modules/messages/messages.route';
 
 const router = Router();
 const moduleRoutes = [
@@ -57,6 +59,14 @@ const moduleRoutes = [
   {
     path: '/reviews',
     route: reviewsRoutes,
+  },
+  {
+    path: '/chats',
+    route: chatRoutes,
+  },
+  {
+    path: '/messages',
+    route: messagesRoutes,
   },
 ];
 moduleRoutes.forEach(route => router.use(route.path, route.route));
