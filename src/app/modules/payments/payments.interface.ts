@@ -8,7 +8,8 @@ export interface IPayments {
   author: ObjectId | IUser;
   amount: number;
   status: string;
-  transactionId: string;
+  paymentMethod: 'stripe';
+  tranId: string;
   isTransfer: boolean;
   bookings: ObjectId | IBookings;
   isDeleted: boolean;
