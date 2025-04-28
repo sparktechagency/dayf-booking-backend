@@ -16,6 +16,9 @@ const paymentsSchema = new Schema<IPayments>(
       enum: ['stripe'],
       default: 'stripe',
     },
+    adminAmount: {
+      type: Number,
+    },
     tranId: { type: String, unique: true, sparse: true },
     isTransfer: { type: Boolean, default: false },
     bookings: { type: Schema.Types.ObjectId, ref: 'Bookings', required: true },
@@ -25,6 +28,7 @@ const paymentsSchema = new Schema<IPayments>(
     timestamps: true,
   },
 );
+
 
 const Payments = model<IPayments, IPaymentsModules>('Payments', paymentsSchema);
 export default Payments;

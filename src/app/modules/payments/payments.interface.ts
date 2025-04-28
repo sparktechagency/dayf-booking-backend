@@ -10,6 +10,8 @@ export interface IPayments {
   status: string;
   paymentMethod: 'stripe';
   tranId: string;
+  adminAmount: number;
+  hotelOwnerAmount: number;
   isTransfer: boolean;
   bookings: ObjectId | IBookings;
   isDeleted: boolean;

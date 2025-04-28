@@ -7,7 +7,7 @@ import Stripe from 'stripe';
 import config from '../../config';
 import generateRandomString from '../../utils/generateRandomString';
 import Bookings from '../bookings/bookings.models';
-import { IBookings } from '../bookings/bookings.interface';
+import { BOOKING_MODEL_TYPE, IBookings } from '../bookings/bookings.interface';
 import { createCheckoutSession } from './payments.utils';
 import { startSession } from 'mongoose';
 import { PAYMENT_STATUS } from './payments.constants';
@@ -50,6 +50,14 @@ const checkout = async (payload: IPayments) => {
 
     paymentData = payment as IPayments;
   } else {
+    if (bookings?.modelType === BOOKING_MODEL_TYPE.Rooms) {
+      payload.adminAmount = bookings?.totalPrice * 0.08;
+      payload.adminAmount = bookings?.totalPrice * 0.92;
+    } else if (bookings?.modelType === BOOKING_MODEL_TYPE.Apartment) {
+      payload.adminAmount = bookings?.totalPrice * 0.1;
+      payload.adminAmount = bookings?.totalPrice * 0.9;
+    }
+
     payload.tranId = tranId;
     payload.author = bookings?.author;
     payload.amount = bookings?.totalPrice;
