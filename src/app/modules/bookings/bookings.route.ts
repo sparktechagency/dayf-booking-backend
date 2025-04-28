@@ -6,7 +6,11 @@ import { USER_ROLE } from '../user/user.constants';
 const router = Router();
 
 router.post('/', auth(USER_ROLE.user), bookingsController.createBookings);
-router.patch('/complete/:id', bookingsController.completeBooking);
+router.patch(
+  '/complete/:id',
+  auth(USER_ROLE.user, USER_ROLE.hotel_owner),
+  bookingsController.completeBooking,
+);
 router.patch(
   '/canceled/:id',
   auth(USER_ROLE.user),
