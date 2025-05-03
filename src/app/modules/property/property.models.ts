@@ -39,6 +39,9 @@ const propertySchema = new Schema<IProperty>(
     length: { type: Number, required: true },
     description: { type: String, required: true },
     address: { type: String, required: true },
+    descriptions: { type: String, required: false, default: null },
+    shortDescriptions: { type: String, required: false, default: null },
+    policy: { type: String, required: false, default: null },
     location: { type: LocationSchema, required: true },
     facility: [
       { type: Schema.Types.ObjectId, ref: 'Facilities', required: true },

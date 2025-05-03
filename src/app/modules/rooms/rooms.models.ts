@@ -32,6 +32,8 @@ const roomsSchema = new Schema<IRooms>(
     otherFacilities: [{ type: String, required: false, default: null }],
     customerChoices: { type: String, required: false, default: null },
     descriptions: { type: String, required: false, default: null },
+    shortDescriptions: { type: String, required: false, default: null },
+    policy: { type: String, required: false, default: null },
     isDeleted: { type: Boolean, default: false },
   },
   {
