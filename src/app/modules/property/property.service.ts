@@ -300,10 +300,56 @@ const deleteProperty = async (id: string) => {
 };
 const getHamePageData = async () => {
  
-const topProperties = await Property.find({}).populate("facilities")
-    .sort({ avgRating: -1 })
-    .limit(10)
-    .lean();
+// const topProperties = await Property.find({}).populate("facilities")
+//     .sort({ avgRating: -1 })
+//     .limit(10)
+//     .lean();
+const topProperties = await Property.aggregate([
+  // Step 1: Match non-deleted properties
+  { $match: { isDeleted: false } },
+
+  // Step 2: Lookup rooms related to each property
+  {
+    $lookup: {
+      from: "rooms", // matches collection name in MongoDB (lowercase plural)
+      localField: "_id",
+      foreignField: "property",
+      as: "rooms",
+    },
+  },
+
+  // Step 3: Lookup and populate facilities
+  {
+    $lookup: {
+      from: "facilities",
+      localField: "facilities",
+      foreignField: "_id",
+      as: "facilities",
+    },
+  },
+
+  // Step 4: Add fields for priceRange based on rooms
+  {
+    $addFields: {
+      priceRange: {
+        $cond: {
+          if: { $gt: [{ $size: "$rooms" }, 0] },
+          then: {
+            min: { $min: "$rooms.pricePerNight" },
+            max: { $max: "$rooms.pricePerNight" },
+          },
+          else: null,
+        },
+      },
+    },
+  },
+
+  // Step 5: Sort by avgRating descending
+  { $sort: { avgRating: -1 } },
+
+  // Step 6: Limit result
+  { $limit: 10 },
+]);
 
   const topHotelRooms = await Apartment.find({}).populate("facilities")
     .sort({ avgRating: -1 })
