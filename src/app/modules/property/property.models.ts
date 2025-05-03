@@ -40,10 +40,15 @@ const propertySchema = new Schema<IProperty>(
     description: { type: String, required: true },
     address: { type: String, required: true },
     descriptions: { type: String, required: false, default: null },
-    shortDescriptions: { type: String, required: false, default: null },
+   shortDescription: {
+      type: String,
+      required: false,
+      default: null,
+    },
+    
     policy: { type: String, required: false, default: null },
     location: { type: LocationSchema, required: true },
-    facility: [
+    facilities: [
       { type: Schema.Types.ObjectId, ref: 'Facilities', required: true },
     ],
     Other: [{ type: String, required: true }],

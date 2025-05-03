@@ -28,7 +28,7 @@ const roomsSchema = new Schema<IRooms>(
     bedDetails: { type: String, required: true },
     facilities: [
       { type: Schema.Types.ObjectId, ref: 'Facilities', required: true },
-    ],
+    ], 
     otherFacilities: [{ type: String, required: false, default: null }],
     customerChoices: { type: String, required: false, default: null },
     descriptions: { type: String, required: false, default: null },

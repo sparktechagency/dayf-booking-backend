@@ -20,10 +20,10 @@ export interface IProperty {
   description: string;
   address: string;
   location: ILocations;
-  facility: ObjectId[];
+  facilities: ObjectId[];
   coverImage: string;
   descriptions: string;
-  shortDescriptions: string;
+  shortDescription: string;
   policy: string;
   Other: string[];
   avgRating: number;
