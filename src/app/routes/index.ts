@@ -52,8 +52,12 @@ const moduleRoutes = [
     route: propertyRoutes,
   },
   {
-    path: '/rooms-types',
+    path: '/property-types',
     route: roomTypesRoutes,
+  },
+  {
+    path: '/rooms',
+    route: roomsRoutes,
   },
 
   {

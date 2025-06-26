@@ -201,14 +201,14 @@ const getAllProperty = async (query: Record<string, any>) => {
             as: 'facilities',
           },
         },
-        {
-          $lookup: {
-            from: 'rooms',
-            localField: 'rooms',
-            foreignField: '_id',
-            as: 'rooms',
-          },
-        },
+        // {
+        //   $lookup: {
+        //     from: 'rooms',
+        //     localField: 'rooms',
+        //     foreignField: '_id',
+        //     as: 'rooms',
+        //   },
+        // },
 
         {
           $lookup: {
@@ -227,20 +227,20 @@ const getAllProperty = async (query: Record<string, any>) => {
           },
         },
 
-        {
-          $addFields: {
-            priceRange: {
-              $cond: {
-                if: { $gt: [{ $size: '$rooms' }, 0] },
-                then: {
-                  min: { $min: '$rooms.pricePerNight' },
-                  max: { $max: '$rooms.pricePerNight' },
-                },
-                else: null,
-              },
-            },
-          },
-        },
+        // {
+        // $addFields: {
+        // priceRange: {
+        //   $cond: {
+        //     if: { $gt: [{ $size: '$rooms' }, 0] },
+        //     then: {
+        //       min: { $min: '$rooms.pricePerNight' },
+        //       max: { $max: '$rooms.pricePerNight' },
+        //     },
+        //     else: null,
+        //   },
+        // },
+        // },
+        // },
       ],
     },
   });
@@ -259,7 +259,7 @@ const getAllProperty = async (query: Record<string, any>) => {
 const getPropertyById = async (id: string) => {
   const result = await Property.findById(id).populate([
     { path: 'author', select: 'name email profile phoneNumber address' },
-    { path: 'rooms' },
+    // { path: 'rooms' },
     { path: 'reviews' },
     { path: 'facilities' },
   ]);
@@ -348,14 +348,14 @@ const getHamePageData = async () => {
     { $match: { isDeleted: false } },
 
     // Step 2: Lookup rooms related to each property
-    {
-      $lookup: {
-        from: 'rooms', // matches collection name in MongoDB (lowercase plural)
-        localField: '_id',
-        foreignField: 'property',
-        as: 'rooms',
-      },
-    },
+    // {
+    //   $lookup: {
+    //     from: 'rooms', // matches collection name in MongoDB (lowercase plural)
+    //     localField: '_id',
+    //     foreignField: 'property',
+    //     as: 'rooms',
+    //   },
+    // },
 
     // Step 3: Lookup and populate facilities
     {
@@ -368,20 +368,20 @@ const getHamePageData = async () => {
     },
 
     // Step 4: Add fields for priceRange based on rooms
-    {
-      $addFields: {
-        priceRange: {
-          $cond: {
-            if: { $gt: [{ $size: '$rooms' }, 0] },
-            then: {
-              min: { $min: '$rooms.pricePerNight' },
-              max: { $max: '$rooms.pricePerNight' },
-            },
-            else: null,
-          },
-        },
-      },
-    },
+    // {
+    //   $addFields: {
+    //     priceRange: {
+    //       $cond: {
+    //         if: { $gt: [{ $size: '$rooms' }, 0] },
+    //         then: {
+    //           min: { $min: '$rooms.pricePerNight' },
+    //           max: { $max: '$rooms.pricePerNight' },
+    //         },
+    //         else: null,
+    //       },
+    //     },
+    //   },
+    // },
 
     // Step 5: Sort by avgRating descending
     { $sort: { avgRating: -1 } },

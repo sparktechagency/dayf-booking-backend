@@ -22,7 +22,7 @@ const roomTypesSchema = new Schema<IRoomTypes>(
        required: true,
      },
      images: { type: [ImageSchema], required: true },
-     roomType: { type: String, required: true },
+     category: { type: String, required: true },
      pricePerNight: { type: Number, required: true },
      guests: {
        adult: {

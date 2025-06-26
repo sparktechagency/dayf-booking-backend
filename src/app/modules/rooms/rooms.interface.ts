@@ -7,7 +7,7 @@ import { IRoomTypes } from '../roomTypes/roomTypes.interface';
 export interface IRooms {
   roomNumber: string;
   property: ObjectId | IProperty;
-  roomType: ObjectId | IRoomTypes;
+  roomCategory: ObjectId | IRoomTypes;
   isActive: boolean;
   isDeleted: boolean;
 }

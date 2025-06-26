@@ -6,7 +6,7 @@ import { IFacilities } from '../facilities/facilities.interface';
 export interface IRoomTypes {
   deleteKey?: string[];
   totalRooms: Number;
-  roomType: string;
+  category: string;
   property: ObjectId | IProperty;
   author: ObjectId | IUser;
   pricePerNight: number;

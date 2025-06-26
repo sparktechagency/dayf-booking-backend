@@ -14,59 +14,108 @@ import Bookings from '../bookings/bookings.models';
 import pickQuery from '../../utils/pickQuery';
 import generateCryptoString from '../../utils/generateCryptoString';
 
-const createRoomTypes = async (payload: IRoomTypes, files: any) => {
-  // Start a session for the transaction
-  const session = await startSession();
+// const createRoomTypes = async (payload: IRoomTypes, files: any) => {
+//   // Start a session for the transaction
+//   const session = await startSession();
 
+//   try {
+//     // Start the transaction
+//     session.startTransaction();
+
+//     if (files) {
+//       const { images } = files;
+
+//       if (images?.length) {
+//         const imgsArray: { file: any; path: string; key?: string }[] = [];
+
+//         images?.map(async (image: any) => {
+//           imgsArray.push({
+//             file: image,
+//             path: `images/property`,
+//           });
+//         });
+
+//         payload.images = await uploadManyToS3(imgsArray); // Upload to S3
+//       }
+//     }
+
+//     // Create the room
+//     const result = await RoomTypes.create([payload], { session });
+
+//     if (!result) {
+//       throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create rooms');
+//     }
+//     if (payload?.totalRooms) {
+//       const rooms = Array(payload.totalRooms)
+//         .fill(0)
+//         .map(() => ({
+//           roomNumber: generateCryptoString(5),
+//           property: result[0].property,
+//           roomCategory: result[0]._id,
+//           isActive: true,
+//         }));
+
+//       await Rooms.insertMany(rooms, { session });
+//     }
+
+//     await session.commitTransaction();
+
+//     return result[0];
+//   } catch (error: any) {
+//     // If any error occurs, abort the transaction (rollback)
+//     await session.abortTransaction();
+//     throw new AppError(httpStatus.BAD_REQUEST, error?.message);
+//   } finally {
+//     // End the session
+//     session.endSession();
+//   }
+// };
+
+const createRoomTypes = async (payload: IRoomTypes, files: any) => {
+  const session = await startSession();
   try {
-    // Start the transaction
     session.startTransaction();
 
-    if (files) {
-      const { images } = files;
+    // Handle image upload if available
+    if (files?.images) {
+      const images = Array.isArray(files.images)
+        ? files.images
+        : [files.images];
 
-      if (images?.length) {
-        const imgsArray: { file: any; path: string; key?: string }[] = [];
+      const imgsArray = images.map((image: any) => ({
+        file: image,
+        path: `images/property`,
+      }));
 
-        images?.map(async (image: any) => {
-          imgsArray.push({
-            file: image,
-            path: `images/property`,
-          });
-        });
-
-        payload.images = await uploadManyToS3(imgsArray); // Upload to S3
-      }
+      payload.images = await uploadManyToS3(imgsArray);
     }
 
-    // Create the room
-    const result = await RoomTypes.create([payload], { session });
+    // Create room type
+    const [roomType] = await RoomTypes.create([payload], { session });
 
-    if (!result) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create rooms');
+    if (!roomType) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create room type');
     }
-    if (payload?.totalRooms) {
-      const rooms = Array(payload.totalRooms)
-        .fill(0)
-        .map(() => ({
-          roomNumber: generateCryptoString(5),
-          property: result[0].property,
-          roomType: result[0].roomType,
+
+    // Generate and insert individual rooms if totalRooms is provided
+    if (payload.totalRooms && (payload?.totalRooms as number) > 0) {
+      const rooms = Array.from({ length: payload.totalRooms as number }).map(
+        () => ({
+          property: roomType.property,
+          roomCategory: roomType._id,
           isActive: true,
-        }));
+        }),
+      );
 
       await Rooms.insertMany(rooms, { session });
     }
 
     await session.commitTransaction();
-
-    return result[0];
+    return roomType;
   } catch (error: any) {
-    // If any error occurs, abort the transaction (rollback)
     await session.abortTransaction();
     throw new AppError(httpStatus.BAD_REQUEST, error?.message);
   } finally {
-    // End the session
     session.endSession();
   }
 };
@@ -268,9 +317,7 @@ const getAllRoomTypes = async (query: Record<string, any>) => {
 
         {
           $addFields: {
-            author: { $arrayElemAt: ['$author', 0] },
-            // facility: { $arrayElemAt: ['$facility', 0] },
-            // ratings: { $arrayElemAt: ['$ratings', 0] },
+            author: { $arrayElemAt: ['$author', 0] }, 
           },
         },
       ],
