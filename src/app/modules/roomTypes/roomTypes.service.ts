@@ -1,60 +1,81 @@
 import httpStatus from 'http-status';
-import { IApartment } from './apartment.interface';
-import Apartment from './apartment.models';
+import { IRoomTypes } from './roomTypes.interface';
+import RoomTypes from './roomTypes.models';
+import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../error/AppError';
-import { deleteManyFromS3, uploadManyToS3, uploadToS3 } from '../../utils/s3';
-import pickQuery from '../../utils/pickQuery';
-import { Types } from 'mongoose';
+import { startSession, Types } from 'mongoose';
+import { deleteManyFromS3, uploadManyToS3 } from '../../utils/s3';
+import Rooms from '../rooms/rooms.models';
+import Property from '../property/property.models';
 import { paginationHelper } from '../../helpers/pagination.helpers';
-import Bookings from '../bookings/bookings.models';
 import { BOOKING_MODEL_TYPE } from '../bookings/bookings.interface';
 import moment from 'moment';
+import Bookings from '../bookings/bookings.models';
+import pickQuery from '../../utils/pickQuery';
+import generateCryptoString from '../../utils/generateCryptoString';
 
-const createApartment = async (payload: IApartment, files: any) => {
-  if (files) {
-    const { images, profile, coverImage } = files;
+const createRoomTypes = async (payload: IRoomTypes, files: any) => {
+  // Start a session for the transaction
+  const session = await startSession();
 
-    if (images?.length) {
-      const imgsArray: { file: any; path: string; key?: string }[] = [];
+  try {
+    // Start the transaction
+    session.startTransaction();
 
-      images?.map(async (image: any) => {
-        imgsArray.push({
-          file: image,
-          path: `images/apartment`,
+    if (files) {
+      const { images } = files;
+
+      if (images?.length) {
+        const imgsArray: { file: any; path: string; key?: string }[] = [];
+
+        images?.map(async (image: any) => {
+          imgsArray.push({
+            file: image,
+            path: `images/property`,
+          });
         });
-      });
 
-      payload.images = await uploadManyToS3(imgsArray);
+        payload.images = await uploadManyToS3(imgsArray); // Upload to S3
+      }
     }
 
-    if (profile?.length) {
-      payload.profile = (await uploadToS3({
-        file: profile[0],
-        fileName: `images/apartment/profile/${Math.floor(100000 + Math.random() * 900000)}`,
-      })) as string;
+    // Create the room
+    const result = await RoomTypes.create([payload], { session });
+
+    if (!result) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create rooms');
     }
-    if (coverImage?.length) {
-      payload.coverImage = (await uploadToS3({
-        file: coverImage[0],
-        fileName: `images/apartment/cover-image/${Math.floor(100000 + Math.random() * 900000)}`,
-      })) as string;
+    if (payload?.totalRooms) {
+      const rooms = Array(payload.totalRooms)
+        .fill(0)
+        .map(() => ({
+          roomNumber: generateCryptoString(5),
+          property: result[0].property,
+          roomType: result[0].roomType,
+          isActive: true,
+        }));
+
+      await Rooms.insertMany(rooms, { session });
     }
+
+    await session.commitTransaction();
+
+    return result[0];
+  } catch (error: any) {
+    // If any error occurs, abort the transaction (rollback)
+    await session.abortTransaction();
+    throw new AppError(httpStatus.BAD_REQUEST, error?.message);
+  } finally {
+    // End the session
+    session.endSession();
   }
-
-  const result = await Apartment.create(payload);
-  if (!result) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create apartment');
-  }
-  return result;
 };
 
-const getAllApartment = async (query: Record<string, any>) => {
+const getAllRoomTypes = async (query: Record<string, any>) => {
   const { filters, pagination } = await pickQuery(query);
 
   const {
     searchTerm,
-    latitude,
-    longitude,
     facilities,
     priceRange,
     ratingsFilter,
@@ -69,33 +90,16 @@ const getAllApartment = async (query: Record<string, any>) => {
   if (filtersData?.author) {
     filtersData['author'] = new Types.ObjectId(filtersData?.author);
   }
+  if (filtersData?.property) {
+    filtersData['property'] = new Types.ObjectId(filtersData?.property);
+  }
 
   if (filtersData?.facility) {
     filtersData['facility'] = new Types.ObjectId(filtersData?.facility);
   }
 
-  if (filtersData?.ratings) {
-    filtersData['reviews'] = new Types.ObjectId(filtersData?.ratings);
-  }
-
   // Initialize the aggregation pipeline
   const pipeline: any[] = [];
-
-  // If latitude and longitude are provided, add $geoNear to the aggregation pipeline
-  if (latitude && longitude) {
-    pipeline.push({
-      $geoNear: {
-        near: {
-          type: 'Point',
-          coordinates: [parseFloat(longitude), parseFloat(latitude)],
-        },
-        key: 'location',
-        maxDistance: parseFloat(5 as unknown as string) * 1609, // 5 miles to meters
-        distanceField: 'dist.calculated',
-        spherical: true,
-      },
-    });
-  }
 
   // Add a match to exclude deleted documents
   pipeline.push({
@@ -123,16 +127,7 @@ const getAllApartment = async (query: Record<string, any>) => {
 
     pipeline.push({
       $match: {
-        price: { $gte: low, $lte: high },
-      },
-    });
-  }
-
-  if (ratingsFilter) {
-    const ratingsArray = ratingsFilter?.split(',').map(Number);
-    pipeline.push({
-      $match: {
-        avgRating: { $in: ratingsArray },
+        pricePerNight: { $gte: low, $lte: high },
       },
     });
   }
@@ -152,7 +147,7 @@ const getAllApartment = async (query: Record<string, any>) => {
     const bookedApartments = await Bookings.aggregate([
       {
         $match: {
-          modelType: BOOKING_MODEL_TYPE.Apartment,
+          modelType: BOOKING_MODEL_TYPE.Rooms,
           isDeleted: false,
           startDate: { $lte: moment(endDate).utc().toDate() }, // booking start <= searchEndDate
           endDate: { $gte: moment(startDate).utc().toDate() }, // booking end >= searchStartDate
@@ -270,14 +265,6 @@ const getAllApartment = async (query: Record<string, any>) => {
             as: 'facilities',
           },
         },
-        {
-          $lookup: {
-            from: 'reviews',
-            localField: 'reviews',
-            foreignField: '_id',
-            as: 'reviews',
-          },
-        },
 
         {
           $addFields: {
@@ -290,7 +277,7 @@ const getAllApartment = async (query: Record<string, any>) => {
     },
   });
 
-  const [result] = await Apartment.aggregate(pipeline);
+  const [result] = await RoomTypes.aggregate(pipeline);
 
   const total = result?.totalData?.[0]?.total || 0;
   const data = result?.paginatedData || [];
@@ -301,26 +288,21 @@ const getAllApartment = async (query: Record<string, any>) => {
   };
 };
 
-const getApartmentById = async (id: string) => {
-  const result = await Apartment.findById(id).populate([
+const getRoomTypesById = async (id: string) => {
+  const result = await RoomTypes.findById(id).populate([
+    { path: 'property' },
     { path: 'author', select: 'name email phoneNumber profile role' },
     { path: 'facilities' },
-    {
-      path: 'reviews',
-      populate: [
-        { path: 'user', select: 'name email phoneNumber profile role' },
-      ],
-    },
   ]);
   if (!result || result?.isDeleted) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Apartment not found!');
+    throw new AppError(httpStatus.BAD_REQUEST, 'Rooms not found!');
   }
   return result;
 };
 
-const updateApartment = async (
+const updateRoomTypes = async (
   id: string,
-  payload: Partial<IApartment>,
+  payload: Partial<IRoomTypes>,
   files: any,
 ) => {
   const { deleteKey, ...updateData } = payload;
@@ -328,7 +310,7 @@ const updateApartment = async (
   const update: any = { ...updateData };
 
   if (files) {
-    const { images, profile, coverImage } = files;
+    const { images } = files;
 
     if (images?.length) {
       const imgsArray: { file: any; path: string; key?: string }[] = [];
@@ -336,68 +318,55 @@ const updateApartment = async (
       images.map((image: any) =>
         imgsArray.push({
           file: image,
-          path: `images/apartment`,
+          path: `images/rooms`,
         }),
       );
 
       payload.images = await uploadManyToS3(imgsArray);
     }
-
-    if (profile?.length) {
-      payload.profile = (await uploadToS3({
-        file: profile[0],
-        fileName: `images/apartment/profile/${Math.floor(100000 + Math.random() * 900000)}`,
-      })) as string;
-    }
-
-    if (coverImage?.length) {
-      payload.coverImage = (await uploadToS3({
-        file: coverImage[0],
-        fileName: `images/apartment/cover-image/${Math.floor(100000 + Math.random() * 900000)}`,
-      })) as string;
-    }
   }
 
   if (deleteKey && deleteKey.length > 0) {
     const newKey: string[] = [];
-    deleteKey.map((key: any) => newKey.push(`images/apartment${key}`));
+    deleteKey.map((key: any) => newKey.push(`images/rooms${key}`));
     if (newKey?.length > 0) {
       await deleteManyFromS3(newKey);
     }
 
-    await Apartment.findByIdAndUpdate(id, {
-      $pull: { images: { key: { $in: deleteKey } } },
+    await RoomTypes.findByIdAndUpdate(id, {
+      $pull: { banner: { key: { $in: deleteKey } } },
     });
   }
 
   if (payload?.images && payload.images.length > 0) {
-    await Apartment.findByIdAndUpdate(id, {
-      $push: { images: { $each: payload.images } },
+    await RoomTypes.findByIdAndUpdate(id, {
+      $push: { banner: { $each: payload.images } },
     });
   }
-  const result = await Apartment.findByIdAndUpdate(id, update, { new: true });
+
+  const result = await RoomTypes.findByIdAndUpdate(id, update, { new: true });
   if (!result) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to update Apartment');
+    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to update Rooms');
   }
   return result;
 };
 
-const deleteApartment = async (id: string) => {
-  const result = await Apartment.findByIdAndUpdate(
+const deleteRoomTypes = async (id: string) => {
+  const result = await Rooms.findByIdAndUpdate(
     id,
     { isDeleted: true },
     { new: true },
   );
   if (!result) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete apartment');
+    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete rooms');
   }
   return result;
 };
 
-export const apartmentService = {
-  createApartment,
-  getAllApartment,
-  getApartmentById,
-  updateApartment,
-  deleteApartment,
+export const roomTypesService = {
+  createRoomTypes,
+  getAllRoomTypes,
+  getRoomTypesById,
+  updateRoomTypes,
+  deleteRoomTypes,
 };

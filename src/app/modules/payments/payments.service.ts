@@ -92,7 +92,7 @@ const checkout = async (payload: IPayments) => {
   const success_url = `${config.server_url}/payments/confirm-payment?sessionId={CHECKOUT_SESSION_ID}&paymentId=${paymentData?._id}`;
 
   const cancel_url = `${config.server_url}/payments/confirm-payment?sessionId={CHECKOUT_SESSION_ID}&paymentId=${paymentData?._id}`;
-
+  console.log({ success_url, cancel_url });
   const checkoutSession = await StripeService.getCheckoutSession(
     product,
     success_url,
@@ -146,21 +146,21 @@ const confirmPayment = async (query: Record<string, any>) => {
       receiver: (payment?.user as IUser)?._id, // User
       message: 'Your booking payment was successful!',
       description: `Your payment for booking ID #${bookings?.id} has been successfully processed. Thank you for choosing us!`,
-      reference: payment?._id,
+      refference: payment?._id,
       model_type: modeType?.payments,
     });
     notificationServices.insertNotificationIntoDb({
       receiver: (payment?.author as IUser)?._id,
       message: 'A new booking payment has been received!',
       description: `User ${(payment?.user as IUser)?.name} has completed payment for booking ID #${bookings?.id} in your property.`,
-      reference: payment?._id,
+      refference: payment?._id,
       model_type: modeType?.payments,
     });
     notificationServices.insertNotificationIntoDb({
       receiver: admin?._id, // System Admin
       message: 'A new booking payment has been processed!',
       description: `Payment with ID ${bookings?.id} for a hotel/apartment booking has been successfully processed.`,
-      reference: payment?._id,
+      refference: payment?._id,
       model_type: modeType?.payments,
     });
 
@@ -171,7 +171,7 @@ const confirmPayment = async (query: Record<string, any>) => {
 
     if (paymentIntentId) {
       try {
-        await StripeService.refund(paymentId)
+        await StripeService.refund(paymentId);
         //  stripe.refunds.create({
         //   payment_intent: paymentIntentId,
         // });

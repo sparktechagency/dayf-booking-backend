@@ -89,6 +89,7 @@ bookingsSchema.pre('save', function (next) {
 
   this.startDate = moment(this.startDate).utc().toDate();
   this.endDate = moment(this.endDate).utc().toDate();
+  next();
 });
 bookingsSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 

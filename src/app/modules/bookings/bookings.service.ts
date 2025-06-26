@@ -52,12 +52,68 @@ const createBookings = async (payload: IBookings) => {
       throw new AppError(httpStatus.BAD_REQUEST, 'booking model type invalid');
   }
 
-  const result = await Bookings.create(payload);
+ 
+    const result = await Bookings.create(payload);
+ 
+ 
   if (!result) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create bookings');
   }
   return result;
 };
+
+// const createBookings = async (payload: IBookings) => {
+
+//   let referenceItem: IRooms | IApartment | null = null;
+//   let pricePerDay = 0;
+
+//   switch (payload.modelType) {
+//     case BOOKING_MODEL_TYPE.Rooms:
+//       referenceItem = await Rooms.findById(payload.reference);
+//       if (!referenceItem) {
+//         throw new AppError(httpStatus.BAD_REQUEST, 'Room not found!');
+//       }
+//       pricePerDay = (referenceItem as IRooms).pricePerNight;
+//       break;
+
+//     case BOOKING_MODEL_TYPE.Apartment:
+//       referenceItem = await Apartment.findById(payload.reference);
+//       if (!referenceItem) {
+//         throw new AppError(httpStatus.BAD_REQUEST, 'Apartment not found!');
+//       }
+//       pricePerDay = (referenceItem as IApartment).price;
+//       break;
+
+//     default:
+//       throw new AppError(
+//         httpStatus.BAD_REQUEST,
+//         'Booking model type is invalid',
+//       );
+//   }
+
+//   const days = moment(payload.endDate).diff(moment(payload.startDate), 'days');
+//   if (days <= 0) {
+//     throw new AppError(
+//       httpStatus.BAD_REQUEST,
+//       'End date must be after start date',
+//     );
+//   }
+
+//   //@ts-ignore
+//   payload.author = referenceItem.author;
+//   //@ts-ignore
+//   payload.reference = referenceItem?._id;
+//   payload.totalPrice = pricePerDay * days;
+
+//   const result = await Bookings.create(payload);
+//   console.log('🚀 ~ createBookings ~ result:', result);
+
+//   if (!result) {
+//     throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create booking');
+//   }
+
+//   return result;
+// };
 
 const getAllBookings = async (query: Record<string, any>) => {
   const { filters, pagination } = await pickQuery(query);
@@ -189,7 +245,6 @@ const getAllBookings = async (query: Record<string, any>) => {
           },
         },
 
-    
         {
           $lookup: {
             from: 'apartments',
@@ -220,7 +275,7 @@ const getAllBookings = async (query: Record<string, any>) => {
         {
           $project: {
             apartmentDetails: 0,
-            roomDetails: 0, 
+            roomDetails: 0,
           },
         },
 
