@@ -30,6 +30,10 @@ const bookingsSchema = new Schema<IBookings>(
       enum: Object.values(BOOKING_STATUS),
       default: BOOKING_STATUS.pending,
     },
+    totalRooms: {
+      type: Number,
+      default: 1,
+    },
     reference: {
       type: Types.ObjectId,
       refPath: 'modelType',

@@ -8,7 +8,6 @@ import config from '../../config';
 import generateRandomString from '../../utils/generateRandomString';
 import Bookings from '../bookings/bookings.models';
 import { BOOKING_MODEL_TYPE, IBookings } from '../bookings/bookings.interface';
-import { createCheckoutSession } from './payments.utils';
 import { startSession } from 'mongoose';
 import { PAYMENT_STATUS } from './payments.constants';
 import { User } from '../user/user.models';
@@ -89,9 +88,9 @@ const checkout = async (payload: IPayments) => {
     customerId = customer?.id;
   }
 
-  const success_url = `${config.server_url}/payments/confirm-payment?sessionId={CHECKOUT_SESSION_ID}&paymentId=${paymentData?._id}`;
+  const success_url = `${config.server_url}/payments/confirm-payment?sessionId={CHECKOUT_SESSION_ID}&paymentId=${paymentData?._id}&device=${payload?.redirectType ? payload?.redirectType : ''}`;
 
-  const cancel_url = `${config.server_url}/payments/confirm-payment?sessionId={CHECKOUT_SESSION_ID}&paymentId=${paymentData?._id}`;
+  const cancel_url = `${config.server_url}/payments/confirm-payment?sessionId={CHECKOUT_SESSION_ID}&paymentId=${paymentData?._id}&device=${payload?.redirectType ? payload?.redirectType : ''}`;
   console.log({ success_url, cancel_url });
   const checkoutSession = await StripeService.getCheckoutSession(
     product,
@@ -104,7 +103,7 @@ const checkout = async (payload: IPayments) => {
 };
 
 const confirmPayment = async (query: Record<string, any>) => {
-  const { sessionId, paymentId } = query;
+  const { sessionId, paymentId, redirectType } = query;
   const session = await startSession();
   const PaymentSession = await StripeService.getPaymentSession(sessionId);
   const paymentIntentId = PaymentSession.payment_intent as string;
@@ -134,7 +133,7 @@ const confirmPayment = async (query: Record<string, any>) => {
       payment?.bookings,
       {
         paymentStatus: PAYMENT_STATUS?.paid,
-        status: BOOKING_STATUS?.completed,
+        status: BOOKING_STATUS?.confirmed,
         tranId: payment?.tranId,
       },
       { new: true, session },
@@ -165,7 +164,7 @@ const confirmPayment = async (query: Record<string, any>) => {
     });
 
     await session.commitTransaction();
-    return payment;
+    return { ...payment.toObject(), redirectType };
   } catch (error: any) {
     await session.abortTransaction();
 

@@ -16,7 +16,10 @@ const createRooms = async (payload: IRoomTypes) => {
 
 const getAllRooms = async (query: Record<string, any>) => {
   const notificationModel = new QueryBuilder(
-    Rooms.find().populate([{ path: 'property' }, { path: 'roomType' }]),
+    Rooms.find({ isDeleted: true }).populate([
+      { path: 'property' },
+      { path: 'roomCategory' },
+    ]),
     query,
   )
     .search([''])
@@ -36,9 +39,11 @@ const getAllRooms = async (query: Record<string, any>) => {
 const getRoomsById = async (id: string) => {
   const result = await Rooms.findById(id).populate([
     { path: 'property' },
-    { path: 'roomType' },
+    { path: 'roomCategory' },
   ]);
-
+  if (result?.isDeleted) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'This items is deleted');
+  }
   return result;
 };
 

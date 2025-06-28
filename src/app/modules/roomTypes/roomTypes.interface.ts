@@ -4,13 +4,14 @@ import { IUser } from '../user/user.interface';
 import { IFacilities } from '../facilities/facilities.interface';
 
 export interface IRoomTypes {
+  _id: string;
   deleteKey?: string[];
-  totalRooms: Number;
+  totalRooms: number;
   category: string;
   property: ObjectId | IProperty;
   author: ObjectId | IUser;
   pricePerNight: number;
-  roomSpace: Number;
+  roomSpace: number;
   bedDetails: string;
   guests: { adult: number; children: number; infants: number };
   facilities: ObjectId[] | IFacilities[];
