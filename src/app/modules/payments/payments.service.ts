@@ -21,13 +21,14 @@ import StripeService from '../../builder/StripeBuilder';
 const checkout = async (payload: IPayments) => {
   const tranId = generateRandomString(10);
   let paymentData: IPayments;
-
+  console.log(payload);
   const bookings: IBookings | null = await Bookings?.findById(
     payload?.bookings,
   ).populate('reference');
+  console.log('🚀 ~ checkout ~ bookings:', bookings);
 
   if (!bookings) {
-    throw new AppError(httpStatus.NOT_FOUND, 'subscription Not Found!');
+    throw new AppError(httpStatus.NOT_FOUND, 'Booking Not Found!');
   }
 
   const isExistPayment: IPayments | null = await Payments.findOne({

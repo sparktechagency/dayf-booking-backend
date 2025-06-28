@@ -288,7 +288,7 @@ const getAllBookings = async (query: Record<string, any>) => {
         },
         {
           $lookup: {
-            from: 'rooms',
+            from: 'roomtypes',
             localField: 'reference',
             foreignField: '_id',
             as: 'roomDetails',
@@ -304,7 +304,7 @@ const getAllBookings = async (query: Record<string, any>) => {
               },
             },
           },
-        },
+        }, 
         {
           $project: {
             apartmentDetails: 0,

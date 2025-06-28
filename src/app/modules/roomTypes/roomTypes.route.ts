@@ -33,6 +33,7 @@ router.delete(
   ),
   roomTypesController.deleteRoomTypes,
 );
+router.get('/global-search', roomTypesController.globalSearch);
 router.get('/:id', roomTypesController.getRoomTypesById);
 router.get('/', roomTypesController.getAllRoomTypes);
 

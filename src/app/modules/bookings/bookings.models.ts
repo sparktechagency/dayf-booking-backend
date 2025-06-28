@@ -95,7 +95,9 @@ bookingsSchema.pre('save', function (next) {
   this.endDate = moment(this.endDate).utc().toDate();
   next();
 });
-bookingsSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 
+bookingsSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
+bookingsSchema.index({ startDate: 1, endDate: 1 });
+bookingsSchema.index({ modelType: 1, reference: 1 });
 const Bookings = model<IBookings, IBookingsModules>('Bookings', bookingsSchema);
 export default Bookings;

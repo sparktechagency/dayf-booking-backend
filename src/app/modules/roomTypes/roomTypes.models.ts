@@ -1,10 +1,15 @@
 import { model, Schema } from 'mongoose';
-import { IRoomTypes, IRoomTypesModules } from './roomTypes.interface';
+import { ILocations, IRoomTypes, IRoomTypesModules } from './roomTypes.interface';
 import { IImage } from '../property/property.interface';
 
 const ImageSchema = new Schema<IImage>({
   key: { type: String, required: true },
   url: { type: String, required: true },
+});
+
+const LocationSchema = new Schema<ILocations>({
+  type: { type: String, enum: ['Point'], required: true },
+  coordinates: { type: [Number], required: true },
 });
 
 const roomTypesSchema = new Schema<IRoomTypes>(
@@ -28,13 +33,13 @@ const roomTypesSchema = new Schema<IRoomTypes>(
         type: Number,
         required: true,
         max: 10,
-        min: 1,
+        min: 0,
       },
       children: {
         type: Number,
         required: true,
         max: 10,
-        min: 2,
+        min: 0,
       },
       infants: {
         type: Number,
@@ -43,6 +48,8 @@ const roomTypesSchema = new Schema<IRoomTypes>(
         min: 0,
       },
     },
+
+    location: { type: LocationSchema, required: true },
     roomSpace: { type: Number, required: true },
     bedDetails: { type: String, required: true },
     facilities: [

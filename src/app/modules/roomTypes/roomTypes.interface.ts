@@ -3,6 +3,10 @@ import { IImage, IProperty } from '../property/property.interface';
 import { IUser } from '../user/user.interface';
 import { IFacilities } from '../facilities/facilities.interface';
 
+export interface ILocations {
+  type: string;
+  coordinates: [number, number];
+}
 export interface IRoomTypes {
   _id: string;
   deleteKey?: string[];
@@ -22,6 +26,7 @@ export interface IRoomTypes {
   policy: string;
   isDeleted: boolean;
   images: IImage[];
+  location: ILocations;
 }
 
 export type IRoomTypesModules = Model<IRoomTypes, Record<string, unknown>>;

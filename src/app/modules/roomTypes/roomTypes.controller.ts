@@ -23,6 +23,15 @@ const getAllRoomTypes = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const globalSearch = catchAsync(async (req: Request, res: Response) => {
+  const result = await roomTypesService.globalSearch(req.query);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'All search data fetched successfully',
+    data: result,
+  });
+});
 
 const getRoomTypesById = catchAsync(async (req: Request, res: Response) => {
   const result = await roomTypesService.getRoomTypesById(req.params.id);
@@ -63,4 +72,5 @@ export const roomTypesController = {
   getRoomTypesById,
   updateRoomTypes,
   deleteRoomTypes,
+  globalSearch,
 };
