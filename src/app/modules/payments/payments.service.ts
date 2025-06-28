@@ -56,10 +56,10 @@ const checkout = async (payload: IPayments) => {
 
       name = (roomType?.property as IProperty)?.name;
       payload.adminAmount = bookings?.totalPrice * 0.08;
-      payload.adminAmount = bookings?.totalPrice * 0.92;
+      payload.hotelOwnerAmount = bookings?.totalPrice * 0.92;
     } else if (bookings?.modelType === BOOKING_MODEL_TYPE.Apartment) {
       payload.adminAmount = bookings?.totalPrice * 0.1;
-      payload.adminAmount = bookings?.totalPrice * 0.9;
+      payload.hotelOwnerAmount = bookings?.totalPrice * 0.9;
       name = (bookings?.reference as IApartment)?.name;
     }
     payload.tranId = tranId;
