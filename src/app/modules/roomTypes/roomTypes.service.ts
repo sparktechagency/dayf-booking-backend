@@ -13,7 +13,6 @@ import pickQuery from '../../utils/pickQuery';
 import Property from '../property/property.models';
 import Apartment from '../apartment/apartment.models';
 
- 
 const createRoomTypes = async (payload: IRoomTypes, files: any) => {
   const session = await startSession();
   try {
@@ -58,7 +57,6 @@ const createRoomTypes = async (payload: IRoomTypes, files: any) => {
   }
 };
 
- 
 const getAllRoomTypes = async (query: Record<string, any>) => {
   const { filters, pagination } = await pickQuery(query);
 
@@ -683,7 +681,7 @@ const globalSearch = async (query: Record<string, any>) => {
     throw new AppError(httpStatus.BAD_REQUEST, 'please select a search type');
   }
 };
- 
+
 const getRoomTypesById = async (id: string) => {
   const result = await RoomTypes.findById(id).populate([
     { path: 'property' },
@@ -724,19 +722,19 @@ const updateRoomTypes = async (
 
   if (deleteKey && deleteKey.length > 0) {
     const newKey: string[] = [];
-    deleteKey.map((key: any) => newKey.push(`images/rooms${key}`));
+    deleteKey.map((key: any) => newKey.push(`images/rooms/${key}`));
     if (newKey?.length > 0) {
       await deleteManyFromS3(newKey);
     }
 
     await RoomTypes.findByIdAndUpdate(id, {
-      $pull: { banner: { key: { $in: deleteKey } } },
+      $pull: { images: { key: { $in: deleteKey } } },
     });
   }
 
   if (payload?.images && payload.images.length > 0) {
     await RoomTypes.findByIdAndUpdate(id, {
-      $push: { banner: { $each: payload.images } },
+      $push: { images: { $each: payload.images } },
     });
   }
 
