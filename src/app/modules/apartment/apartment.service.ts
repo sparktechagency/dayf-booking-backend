@@ -56,7 +56,7 @@ const getAllApartment = async (query: Record<string, any>) => {
     latitude,
     longitude,
     facilities,
-    priceRange,
+    priceRange,//10-100
     ratingsFilter,
     adults,
     children,

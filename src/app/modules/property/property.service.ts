@@ -6,10 +6,10 @@ import { deleteManyFromS3, uploadManyToS3, uploadToS3 } from '../../utils/s3';
 import pickQuery from '../../utils/pickQuery';
 import { Types } from 'mongoose';
 import { paginationHelper } from '../../helpers/pagination.helpers';
-import generateCryptoString from '../../utils/generateCryptoString';
 import Apartment from '../apartment/apartment.models';
+import generateRandomString from '../../utils/generateRandomString';
 
-const createProperty = async (payload: IProperty, files: any) => { 
+const createProperty = async (payload: IProperty, files: any) => {
   if (files) {
     const { images, coverImage, profile } = files;
 
@@ -29,13 +29,13 @@ const createProperty = async (payload: IProperty, files: any) => {
     if (coverImage) {
       payload.coverImage = (await uploadToS3({
         file: coverImage[0],
-        fileName: `images/property/cover/${generateCryptoString(5)}`,
+        fileName: `images/property/cover/${generateRandomString(5)}`,
       })) as string;
     }
     if (profile) {
       payload.profile = (await uploadToS3({
         file: profile[0],
-        fileName: `images/property/profile/${generateCryptoString(5)}`,
+        fileName: `images/property/profile/${generateRandomString(5)}`,
       })) as string;
     }
   }
@@ -335,7 +335,7 @@ const updateProperty = async (
     if (coverImage) {
       payload.coverImage = (await uploadToS3({
         file: coverImage[0],
-        fileName: `images/property/cover/${generateCryptoString(5)}`,
+        fileName: `images/property/cover/${generateRandomString(5)}`,
       })) as string;
     }
   }
