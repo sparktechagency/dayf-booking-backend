@@ -145,3 +145,6 @@ This project is licensed under the MIT License.
 ## Contact
 
 For support or inquiries, please contact [dev.nazmulhasan@gmail.com](mailto:dev.nazmulhasan@gmail.com).
+
+
+<!-- Security scan triggered at 2025-09-02 04:13:05 -->
