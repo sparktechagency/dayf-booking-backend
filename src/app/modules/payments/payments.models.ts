@@ -26,12 +26,13 @@ const paymentsSchema = new Schema<IPayments>(
     },
     adminAmount: {
       type: Number,
+      required: true,
     },
     hotelOwnerAmount: {
       type: Number,
+      required: true,
     },
     tranId: { type: String, unique: true, sparse: true },
-    isTransfer: { type: Boolean, default: false },
     bookings: { type: Schema.Types.ObjectId, ref: 'Bookings', required: true },
     isDeleted: { type: Boolean, default: false },
   },
@@ -39,14 +40,6 @@ const paymentsSchema = new Schema<IPayments>(
     timestamps: true,
   },
 );
-
-paymentsSchema.pre('save', function (next) {
-  if (this.amount) {
-    this.adminAmount = Math.round(this.amount * 0.8);
-    this.hotelOwnerAmount = Math.round(this.amount * 0.9);
-  }
-  next();
-});
 
 paymentsSchema.index({ author: 1, user: 1 });
 paymentsSchema.index({ tranId: 1, bookings: 1 });
